@@ -78,16 +78,16 @@ GET /books/{bookId}
 
 ---
 
-```mariadb
+```mermaid
 sequenceDiagram
-participant 사용자
-participant 컨트롤러 as OrderController
-participant 서비스 as OrderService
-participant 이벤트저장소 as EventStoreRepository
-participant 이벤트버스 as ApplicationEventPublisher
-participant 이벤트리스너 as OrderEventListener
-participant 조회DB as OrderProjectionRepository
-participant 조회API as OrderQueryController
+    participant 사용자
+    participant 컨트롤러 as OrderController
+    participant 서비스 as OrderService
+    participant 이벤트저장소 as EventStoreRepository
+    participant 이벤트버스 as ApplicationEventPublisher
+    participant 이벤트리스너 as OrderEventListener
+    participant 조회DB as OrderProjectionRepository
+    participant 조회API as OrderQueryController
 
     사용자->>+컨트롤러: 주문 생성 요청 (POST /orders {orderId})
     컨트롤러->>+서비스: createOrder(command) 호출
