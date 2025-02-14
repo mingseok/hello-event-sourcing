@@ -2,8 +2,10 @@ package com.example.event.service;
 
 import com.example.event.aggregate.BookAggregate;
 import com.example.event.command.BorrowBookCommand;
+import com.example.event.command.ReturnBookCommand;
 import com.example.event.event.BookAddedEvent;
 import com.example.event.event.BookBorrowedEvent;
+import com.example.event.event.BookReturnedEvent;
 import com.example.event.projection.BookProjection;
 import com.example.event.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
@@ -72,5 +74,27 @@ public class BookService {
                 .orElseThrow(() -> new RuntimeException("책을 찾을 수 없다."));
         bookProjection.borrowBook();
         bookRepository.save(bookProjection);
+    }
+
+    // 도서 반납 처리
+    public void returnBook(ReturnBookCommand command) {
+        if (!eventStore.containsKey(command.getBookId())) {
+            throw new RuntimeException("Book not found!");
+        }
+
+        BookAggregate bookAggregate = eventStore.get(command.getBookId());
+        if (!bookAggregate.isBorrowed()) {
+            throw new RuntimeException("Book is not borrowed!");
+        }
+
+        // 이벤트 생성 및 Aggregate 업데이트
+        BookReturnedEvent event = new BookReturnedEvent(command.getBookId());
+        bookAggregate.apply(event);
+
+        // Projection 업데이트
+        BookProjection bookProjection = bookRepository.findById(command.getBookId())
+                .orElseThrow(() -> new RuntimeException("Book projection not found!"));
+        bookProjection.returnBook();
+        bookRepository.save(bookProjection); // Projection 저장
     }
 }
