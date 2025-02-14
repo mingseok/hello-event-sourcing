@@ -74,3 +74,31 @@ GET /books/{bookId}
   "isBorrowed": true
 }
 ```
+
+
+---
+
+```mariadb
+sequenceDiagram
+participant 사용자
+participant 컨트롤러 as OrderController
+participant 서비스 as OrderService
+participant 이벤트저장소 as EventStoreRepository
+participant 이벤트버스 as ApplicationEventPublisher
+participant 이벤트리스너 as OrderEventListener
+participant 조회DB as OrderProjectionRepository
+participant 조회API as OrderQueryController
+
+    사용자->>+컨트롤러: 주문 생성 요청 (POST /orders {orderId})
+    컨트롤러->>+서비스: createOrder(command) 호출
+    서비스->>+이벤트저장소: OrderCreatedEvent 저장
+    서비스->>+이벤트버스: OrderCreatedEvent 발행
+    이벤트버스->>+이벤트리스너: OrderCreatedEvent 전달
+    이벤트리스너->>+조회DB: OrderProjection 저장
+    이벤트리스너-->>-이벤트버스: 처리 완료 응답
+
+    사용자->>+조회API: 주문 조회 요청 (GET /orders/{orderId})
+    조회API->>+조회DB: 주문 데이터 조회
+    조회DB-->>-조회API: 주문 데이터 반환
+    조회API-->>-사용자: JSON 응답 반환
+```
